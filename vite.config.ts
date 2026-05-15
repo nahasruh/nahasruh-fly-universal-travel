@@ -9,6 +9,11 @@ export default defineConfig({
       '@': path.resolve(__dirname, './client/src'),
     },
   },
+  build: {
+    outDir: 'dist/client',
+    emptyOutDir: false,
+    minify: 'terser',
+  },
   server: {
     middlewareMode: true,
   },

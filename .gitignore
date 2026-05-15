@@ -1,0 +1,14 @@
+node_modules/
+dist/
+build/
+*.log
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.manus-logs/
+.manus/
+.project-config.json
+pnpm-lock.yaml

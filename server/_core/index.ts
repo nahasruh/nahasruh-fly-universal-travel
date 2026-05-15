@@ -1,27 +1,56 @@
-import 'dotenv/config'
-import express from 'express'
-import { createServer } from 'http'
-import path from 'path'
-import { fileURLToPath } from 'url'
+import express from 'express';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+dotenv.config();
 
-const app = express()
-const server = createServer(app)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-app.use(express.json())
-app.use(express.static(path.join(__dirname, '../../dist/client')))
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../dist/client/index.html'))
-})
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../dist/client/index.html'))
-})
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
+});
 
-const PORT = process.env.PORT || 3000
-server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}/`)
-})
+app.get('/api', (req, res) => {
+  res.json({ 
+    message: 'Fly Universal ERP API',
+    endpoints: [
+      '/api/health',
+      '/api/trpc'
+    ]
+  });
+});
+
+if (process.env.NODE_ENV === 'production') {
+  const distPath = path.resolve(__dirname, '../../../dist/client');
+  app.use(express.static(distPath));
+  
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
+
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error(err.stack);
+  res.status(500).json({ 
+    error: 'Internal Server Error',
+    message: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
+});
+
+app.listen(PORT, () => {
+  console.log(`🚀 Fly Universal ERP Server running on port ${PORT}`);
+  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔗 Health Check: http://localhost:${PORT}/api/health`);
+});
